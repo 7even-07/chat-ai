@@ -1,0 +1,12 @@
+txt
+CopyEdit
+TTS==0.22.0
+torch
+torchaudio
+torchvision
+fastapi
+uvicorn
+soundfile
+numpy
+scipy
+sqlalchemy

@@ -1,0 +1,33 @@
+# === Python venv and build junk ===
+Backend/xtts_env/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+
+# ===== Backend specific =====
+
+# audio
+Backend/audio/
+
+# ffmpeg tools
+Backend/tools/
+
+# models of xtts_v2
+Backend/models/xtts_v2/
+
+# TTS engine
+Backend/TTS/
+
+# database file
+Backend/app/db/database.py
+
+# unwanted legacy code
+Backend/legacy/
+
+
+# ===== Frontend (Next.js) =====
+
+# Build output and dependencies
+Frontend/chat-ai/.next/
+Frontend/chat-ai/node_modules/
