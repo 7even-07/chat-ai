@@ -14,7 +14,11 @@ import {
   Squares2X2Icon,
   XMarkIcon,
   Bars3Icon,
+  ArrowRightOnRectangleIcon
 } from "@heroicons/react/24/solid";
+import { useRouter } from "next/navigation";
+import { openLoadingModal, closeLoadingModal, showResponseMessage } from "@/app/lib/alert";
+import { logoutAPI } from "@/services/authenticationAPI";
 
 const NAV_MENU = [
   {
@@ -56,15 +60,47 @@ function NavItem({ children, href }: NavItemProps) {
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const router = useRouter();
 
   const handleOpen = () => setOpen((cur) => !cur);
 
+const handleLogout = async () => {
+    try {
+      openLoadingModal();
+      const result = await logoutAPI();
+
+      await showResponseMessage(result.response_code, result.response_message);
+
+      if (result.response_code === true) {
+        setIsLoggedIn(false);
+        router.push("/auth/login");
+      }
+    } catch (err) {
+      await showResponseMessage(false, "Something went wrong while logging out");
+    } finally {
+      closeLoadingModal();
+    }
+  };
+
   React.useEffect(() => {
-    window.addEventListener(
-      "resize",
-      () => window.innerWidth >= 960 && setOpen(false)
-    );
+    const checkLogin = async () => {
+      try {
+        const res = await fetch(`${config.BACKENDSITEURL}/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+        setIsLoggedIn(data.response_code === true);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+
+    checkLogin();
   }, []);
+
+
 
   return (
     <MTNavbar shadow={false} fullWidth className="border-0 sticky top-0 z-50">
@@ -81,11 +117,23 @@ export function Navbar() {
           ))}
         </ul>
         <div className="hidden items-center gap-2 lg:flex">
-          <Button variant="text">Sign In</Button>
-          <a href="https://www.material-tailwind.com/blocks" target="_blank">
-            <Button color="gray">blocks</Button>
-          </a>
+          {!isLoggedIn ? (
+            <>
+              <a href={`${config.SITE_URL}/auth/register`}>
+                <Button variant="text">Sign Up</Button>
+              </a>
+              <a href={`${config.SITE_URL}/auth/login`}>
+                <Button color="gray">Login</Button>
+              </a>
+            </>
+          ) : (
+            <Button color="red" onClick={handleLogout}>
+              <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
+              Logout
+            </Button>
+          )}
         </div>
+
         <IconButton
           variant="text"
           color="gray"

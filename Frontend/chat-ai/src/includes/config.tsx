@@ -3,7 +3,7 @@ const config = {
   SITE_URL: "http://localhost:3000",
 
   // Backend URL
-  BACKENDSITEURL: "http://127.0.0.1:8000",
+  BACKENDSITEURL: "http://localhost:8000",
 
   // API Endpoints
   API: {

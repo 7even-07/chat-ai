@@ -8,3 +8,13 @@ SPEAKER_WAV = os.path.join(MODEL_PATH, "sample.wav")
 LANGUAGE = "en"
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
+
+# site details
+SITE_URL = "http://localhost:3000"
+DOMAIN_NAME = "localhost"
+
+# character image dir
+CHARACTER_AVATAR_PATH = "uploads/characters/avatar-img"
+
+# character voice dir
+CHARACTER_VOICE_PATH = "uploads/characters/voice"
