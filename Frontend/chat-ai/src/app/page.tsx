@@ -17,14 +17,14 @@ export default function Portfolio() {
     <>
       <Navbar />
       <Hero />
-      <ChatAI/>
-      <Clients />
-      <Skills />
+      {/* <ChatAI/> */}
       <Projects />
+      {/* <Clients />
+      <Skills />
       <Resume />
       <Testimonial />
       <PopularClients />
-      <ContactForm />
+      <ContactForm /> */}
       <Footer />
     </>
   );

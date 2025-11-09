@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import config from "../includes/config";
 import {
   Navbar as MTNavbar,
@@ -19,22 +19,10 @@ import {
 import { useRouter } from "next/navigation";
 import { openLoadingModal, closeLoadingModal, showResponseMessage } from "@/app/lib/alert";
 import { logoutAPI } from "@/services/authenticationAPI";
+import { useAuth } from "./AuthContext";
 
-const NAV_MENU = [
-  {
-    name: "Page",
-    icon: RectangleStackIcon,
-  },
-  {
-    name: "Account",
-    icon: UserCircleIcon,
-  },
-  {
-    name: "Docs",
-    icon: CommandLineIcon,
-    href: "https://www.material-tailwind.com/docs/react/installation",
-  },
-];
+
+
 
 interface NavItemProps {
   children: React.ReactNode;
@@ -61,8 +49,9 @@ function NavItem({ children, href }: NavItemProps) {
 export function Navbar() {
   const [open, setOpen] = React.useState(false);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const [userId, setUserId] = useState(0);
+  const [username, setUsername] = useState("Guest");
   const router = useRouter();
-
   const handleOpen = () => setOpen((cur) => !cur);
 
 const handleLogout = async () => {
@@ -90,7 +79,9 @@ const handleLogout = async () => {
           method: "GET",
           credentials: "include",
         });
-        const data = await res.json();
+        const data = await res.json();        
+        setUserId(data.response_data.id);
+        setUsername(data.response_data.username);
         setIsLoggedIn(data.response_code === true);
       } catch {
         setIsLoggedIn(false);
@@ -99,6 +90,18 @@ const handleLogout = async () => {
 
     checkLogin();
   }, []);
+
+  const NAV_MENU = [
+    {
+      name: "Page",
+      icon: RectangleStackIcon,
+    },
+    {
+      name: "Account",
+      icon: UserCircleIcon,
+      href: `user-account/${userId}/${username}`,
+    }
+  ];
 
 
 

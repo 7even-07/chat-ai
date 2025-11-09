@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 import torch, torchaudio
+from app.config import KOBOLD_AI_SITE_URL
 
 from app.schemas.chat import Chat
 from app.models.chat_model import generate_tts
@@ -13,7 +14,10 @@ from app.config import AUDIO_DIR, SPEAKER_WAV, LANGUAGE
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.db.database import SessionLocal
+
+from app.models import characters_details
 from app.models.chat_history import ChatHistory
+from app.utils.response import generate_json_encoded_response
 
 def get_db():
     db = SessionLocal()
@@ -25,82 +29,122 @@ def get_db():
 
 router = APIRouter()
 
-# defining temporary variable
-member_id = 1
+def build_chat_history_text(db: Session, member_id: int, character_id: int) -> str:
+    chats = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.member_id == member_id, ChatHistory.character_id == character_id)
+        .order_by(ChatHistory.addedon.asc())
+        .limit(12)
+        .all()
+    )
+    history_lines = []
+    for chat in chats:
+        history_lines.append(f"You: {chat.user_message}")
+        history_lines.append(f"{chat.reply_message}")
+    return "\n".join(history_lines)
 
+@router.get("/chat/history")
+async def get_chat_history_api(
+    member_id: int,
+    character_id: int,
+    db: Session = Depends(get_db)
+):
+    chats = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.member_id == member_id, ChatHistory.character_id == character_id)
+        .order_by(ChatHistory.addedon.asc())
+        .limit(12)
+        .all()
+    )
 
-# defining initial context only for once
-initial_context = (
-    "Author's Memory:\n"
-    "Ayesha Khan is a 22-year-old Indian actress, model, and influencer. She commands attention with her hourglass figure (34D-26-36), radiant brown skin, long flowing black hair, and piercing brown eyes.\n"
-    "She is arrogant, sensual, and in complete control. Whether draped in high fashion or seductive lingerie, she moves with calculated grace — a walking provocation.\n"
-    "She speaks in low, deliberate tones that mix sarcasm with allure. She enjoys teasing others, drawing them in with smirks, slow blinks, intense stares, and suggestive body language.\n"
-    "Ayesha never begs, never rushes, and never apologizes. Her silence can be as dangerous as her stare.\n\n"
-    "Author's Note:\n"
-    "Ayesha speaks with a slow, sensual rhythm — every word deliberate and laced with dominance.\n"
-    "She seduces with her tone and body language, using teasing phrases, intimate pauses, and mocking smirks.\n"
-    "She never shows weakness. Her charm is a weapon; her gaze feels like a caress and a challenge.\n"
-    "She enjoys taking control of the conversation — leading it like a slow dance.\n\n"
-    "World Info:\n"
-    "Key: Ayesha\n"
-    "Value: Ayesha is a sultry, confident, curvy Indian actress and model. She uses seductive language, eye contact, and touch to dominate conversations.\n"
-    "Her presence is overwhelming — a mix of sensuality and danger. She enjoys being in control, teasing others while staying emotionally untouchable.\n\n"
-)
+    chat_list = []
+    for chat in chats:
+        chat_list.append({
+            "id": f"user-{chat.id}",
+            "sender": "user",
+            "text": chat.user_message,
+            "timestamp": chat.addedon.isoformat() if chat.addedon else None
+        })
+        chat_list.append({
+            "id": f"bot-{chat.id}",
+            "sender": "bot",
+            "text": chat.reply_message.lstrip(":").strip(),
+            "audio_url": chat.audio_path,
+            "timestamp": chat.addedon.isoformat() if chat.addedon else None
+        })
 
+    chat_list.sort(key=lambda x: x["timestamp"])
 
-# creating a global chat history buffer to store chat history in global list
-chat_history = []
-
-# query koboldai
-def query_koboldai(user_input: str) -> str:
-    global chat_history
-
-    # Append new user input and prepare for Ayesha's reply
-    chat_history.append(f"You: {user_input}")
-    chat_history.append("Ayesha:")
-
-    # Limit chat history to last 12 turns to stay under token limits
-    limited_history = "\n".join(chat_history[-12:])
-
-    # Only inject the initial context ONCE
-    full_prompt = initial_context + "\n" + limited_history
-
-    payload = {
-        "prompt": full_prompt,
-        "max_context_length": 2048,
-        "max_length": 200,
-        "temperature": 0.8,
-        "stop_sequence": ["You:", "User:"]
-    }
-
-    try:
-        response = requests.post("http://localhost:5001/api/v1/generate", json=payload)
-        response.raise_for_status()
-        data = response.json()
-
-        # Store bot's reply in chat history
-        bot_reply = data["results"][0]["text"].strip()
-        chat_history[-1] += f" {bot_reply}"
-
-        return bot_reply
-    except Exception as e:
-        return f"[Error: Failed to generate response from KoboldAI — {str(e)}]"
-
-
+    return generate_json_encoded_response(1, "Previous chat restored.", "", chat_list)
 
 
 @router.post("/chat")
 async def chat(req: Chat, db: Session = Depends(get_db)):
-    user = req.message
-    reply = query_koboldai(user)
+    # user = req.message
+    # reply = query_koboldai(user)
+    user_message = req.message
+    character_id = req.characterId
+    member_id = req.memberId
 
+    # fetch character details
+    character = (
+        db.query(characters_details.CharactersDetails).filter_by(id=character_id, is_delete= False).first()
+    )
 
+    if not character:
+        response_message = "Character not found."
+        return generate_json_encoded_response(False, response_message, "", None)
+    
+    # Build dynamic initial context from db fields
+    speaker_wav = SPEAKER_WAV
+    language = LANGUAGE
+    if not character.character_voice_url:
+        speaker_wav = character.character_voice_url
+
+    if not character.language:
+        language = character.language
+
+    initial_context = (
+        f"Author's Memory:\n"
+        f"{character.character_name} is a {character.author_notes}. \n"
+        f"Personality : {character.personality_traits} \n"
+        f"Speaking style: {character.speaking_style} \n\n"
+        f"World info: {character.world_info} \n"
+        f"Key: {character.character_name} \n"
+        f"Value: {character.world_info} \n"
+    )
+
+    # Build chat history dynamically
+    history = build_chat_history_text(db, member_id, character_id)
+
+    # Build prompt
+    full_prompt = initial_context + "\n" + history + f"You: {user_message}\n {character.character_name}"
+
+    # Query KoboldAI with character-specific context
+    payload = {
+        "prompt": full_prompt,
+        "max_context_length": 2048,
+        "max_length": 200,
+        "temprature": 0.8,
+        "stop_sequence": ["You:", "User:"]
+    }
+
+    try:
+        response = requests.post(f"{KOBOLD_AI_SITE_URL}/api/v1/generate", json=payload)
+        response.raise_for_status()
+        data = response.json()
+        reply = data["results"][0]["text"].strip()
+    except Exception as e:
+        response_message = f"KoboldAI error: {str(e)}"
+        return generate_json_encoded_response(False, response_message, "", None)
+    
+    # generate audio
     uid = str(uuid.uuid4())
     wav_path = os.path.join(AUDIO_DIR, f"{uid}.wav")
     mp3_path = os.path.join(AUDIO_DIR, f"{uid}.mp3")
 
     # Generate audio
-    wav_np = generate_tts(reply, SPEAKER_WAV, LANGUAGE)
+    wav_np = generate_tts(reply, speaker_wav, language)
     wav_tensor = torch.from_numpy(wav_np).unsqueeze(0)
     torchaudio.save(wav_path, wav_tensor, sample_rate=24000)
 
@@ -111,7 +155,8 @@ async def chat(req: Chat, db: Session = Depends(get_db)):
     # ORM Insert
     chat_entry = ChatHistory(
         member_id = member_id,
-        user_message = user,
+        character_id = character_id,
+        user_message = user_message,
         reply_message = reply,
         audio_path = mp3_path,
     )

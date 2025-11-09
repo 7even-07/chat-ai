@@ -1,0 +1,1 @@
+// write a function for display some characters of string

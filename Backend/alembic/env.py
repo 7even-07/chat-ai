@@ -10,7 +10,10 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.db.database import Base
-from app.models import chat_history, characters_details, chat_model 
+from app.models.chat_history import ChatHistory
+from app.models.characters_details import CharactersDetails
+from app.models.members import Member
+from app.models import chat_model
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

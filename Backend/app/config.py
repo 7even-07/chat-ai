@@ -11,6 +11,7 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 
 # site details
 SITE_URL = "http://localhost:3000"
+KOBOLD_AI_SITE_URL = "http://localhost:5001"
 DOMAIN_NAME = "localhost"
 
 # character image dir

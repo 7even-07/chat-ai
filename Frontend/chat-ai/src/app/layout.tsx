@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { Layout, FixedPlugin } from "@/components";
+import { AuthProvider } from "@/components/AuthContext";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -32,10 +33,12 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/favicon.png" type="image/png" />
       </head>
       <body className={roboto.className}>
-        <Layout>
-          {children}
-          <FixedPlugin />
-        </Layout>
+        <AuthProvider>
+          <Layout>
+            {children}
+            <FixedPlugin />
+          </Layout>
+        </AuthProvider>
       </body>
     </html>
   );
