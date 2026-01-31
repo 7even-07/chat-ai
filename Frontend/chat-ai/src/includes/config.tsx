@@ -13,6 +13,8 @@ const config = {
   APP: {
     NAME: "Seven Oceans",
     VERSION: "1.0.0",
+    DESCRIPTION: "Seven Oceans",
+    FAVICON: "../app/Static/img/seven-ocean.png",
   },
 
   ROUTES: {
@@ -22,6 +24,8 @@ const config = {
   },
 
   WEBSIE_SITE_ASSETS_PATH: "/website",
+
+  BACKEND_SITE_ASSETS_PATH: "http://localhost:8000/uploads",
 
 };
 

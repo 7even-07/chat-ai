@@ -92,15 +92,16 @@ const handleLogout = async () => {
   }, []);
 
   const NAV_MENU = [
-    {
-      name: "Page",
-      icon: RectangleStackIcon,
-    },
-    {
-      name: "Account",
-      icon: UserCircleIcon,
-      href: `user-account/${userId}/${username}`,
-    }
+    ...(isLoggedIn
+      ? [
+          {
+            name: "Account",
+            icon: UserCircleIcon,
+            href: `user-account/${userId}/${username}`,
+          },
+      ]
+      : []
+    ),
   ];
 
 

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { Layout, FixedPlugin } from "@/components";
 import { AuthProvider } from "@/components/AuthContext";
+import config from "@/includes/config";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -12,9 +13,9 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js + Tailwind Portfolio Page",
+  title: config.APP.NAME,
   description:
-    "Introducing Tailwind Portfolio Page, a versatile and stylish portfolio template built on the foundation of Tailwind CSS and Material Tailwind.",
+    config.APP.DESCRIPTION,
 };
 
 export default function RootLayout({
@@ -30,7 +31,7 @@ export default function RootLayout({
           data-site="YOUR_DOMAIN_HERE"
           src="https://api.nepcha.com/js/nepcha-analytics.js"
         ></script>
-        <link rel="shortcut icon" href="/favicon.png" type="image/png" />
+        <link rel="shortcut icon" href={config.APP.FAVICON} type="image/png" />
       </head>
       <body className={roboto.className}>
         <AuthProvider>

@@ -51,7 +51,7 @@ import { Character } from "@/types/characters";
 //   },
 // ];
 
-export function Projects() {
+export function Characters() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const fetchCharacters = async () => {
     const data = await getCharacters();
@@ -85,4 +85,4 @@ export function Projects() {
   );
 }
 
-export default Projects;
+export default Characters;

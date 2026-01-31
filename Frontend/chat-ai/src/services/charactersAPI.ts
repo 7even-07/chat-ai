@@ -72,3 +72,13 @@ export const deleteCharacter = async (id: number) => {
     }
     return  result;
 }
+
+export const getCharactersAccordingUser = async (memberId: number) => {
+    const res = await fetch(`${config.BACKENDSITEURL}/characters/member/${memberId}`);
+    const result = await res.json();
+
+    if (!result.response_code) {
+        throw new Error(result.response_message || "Failed to fetch character details");
+    }
+    return result.response_data;
+}

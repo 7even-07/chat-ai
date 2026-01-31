@@ -292,3 +292,17 @@ def delete_character(character_id: int, db: Session = Depends(get_db)):
 
     response_message = "Character has been successfully deleted"
     return generate_json_encoded_response(True, response_message, "", None)
+
+@router.get("/member/{member_id}")
+def get_characters_according_member(member_id: int, db: Session = Depends(get_db)):
+    characters = db.query(characters_details.CharactersDetails).filter_by(
+        member_id=member_id, is_delete=False, is_active=True
+    ).order_by(desc(characters_details.CharactersDetails.addedon)).all()
+
+    if not characters:
+        response_message = "Character not found."
+        return generate_json_encoded_response(False, response_message)
+
+    response_message = "Characters fetched successfully."
+    return generate_json_encoded_response(True, response_message, "", characters)
+

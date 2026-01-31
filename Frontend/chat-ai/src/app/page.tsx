@@ -5,7 +5,7 @@ import { Navbar, Footer } from "@/components";
 import Hero from "./hero";
 import Clients from "./clients";
 import Skills from "./skills";
-import Projects from "./projects";
+import Characters from "./characters";
 import Resume from "./resume";
 import Testimonial from "./testimonial";
 import PopularClients from "./popular-clients";
@@ -18,7 +18,7 @@ export default function Portfolio() {
       <Navbar />
       <Hero />
       {/* <ChatAI/> */}
-      <Projects />
+      <Characters />
       {/* <Clients />
       <Skills />
       <Resume />

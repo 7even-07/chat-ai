@@ -22,19 +22,6 @@ const ChatApp: React.FC<ChatAppProps> = ({ characterId }) => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatLog]);
 
-  // useEffect(() => {
-  //   if (characterId) {
-  //     async function load() {
-  //       const data = await getCharacterById(Number(characterId));
-  //       setAvatarPreview(
-  //         `${config.BACKENDSITEURL}/uploads/characters/avatar-img/` +
-  //           data.character_avatar_url
-  //       );
-  //     }
-  //     load();
-  //   }
-  // }, [characterId]);
-
   useEffect(() => {
     if (characterId) {
       const load = async () => {

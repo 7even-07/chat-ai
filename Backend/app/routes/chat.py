@@ -98,10 +98,10 @@ async def chat(req: Chat, db: Session = Depends(get_db)):
     # Build dynamic initial context from db fields
     speaker_wav = SPEAKER_WAV
     language = LANGUAGE
-    if not character.character_voice_url:
-        speaker_wav = character.character_voice_url
+    if character.character_voice_url:
+        speaker_wav = "uploads/characters/voice/" + character.character_voice_url
 
-    if not character.language:
+    if character.language:
         language = character.language
 
     initial_context = (
@@ -118,14 +118,20 @@ async def chat(req: Chat, db: Session = Depends(get_db)):
     history = build_chat_history_text(db, member_id, character_id)
 
     # Build prompt
-    full_prompt = initial_context + "\n" + history + f"You: {user_message}\n {character.character_name}"
+    # full_prompt = initial_context + "\n" + history + f"You: {user_message}\n {character.character_name}"
+    full_prompt = (
+        initial_context + "\n" +
+        history +
+        f"\nYou: {user_message}\n{character.character_name}: "
+    )
+
 
     # Query KoboldAI with character-specific context
     payload = {
         "prompt": full_prompt,
         "max_context_length": 2048,
         "max_length": 200,
-        "temprature": 0.8,
+        "temperature": 0.8,
         "stop_sequence": ["You:", "User:"]
     }
 
